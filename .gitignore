@@ -1,0 +1,53 @@
+# Ambiente virtual
+.venv/
+venv/
+env/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Dados e modelos (artefatos locais; pastas vazias ficam via .gitkeep)
+data/raw/*
+!data/raw/.gitkeep
+data/interm/*
+!data/interm/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+models/*
+!models/.gitkeep
+
+# LaTeX (artefatos de compilação)
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.fls
+*.fdb_latexmk
+
+# Credenciais (Kaggle, etc.)
+.env
+.kaggle/
+kaggle.json
+
+# Contexto local do projeto (não versionar)
+PROJECT_CONTEXT.md
+
+# SO / IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

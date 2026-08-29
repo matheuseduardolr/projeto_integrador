@@ -1,0 +1,33 @@
+[project]
+name = "projeto-integrador"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Matheus Eduardo", email = "matheuslrego7@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "imbalanced-learn>=0.14.2",
+    "ipykernel>=7.3.0",
+    "kaggle>=2.2.4",
+    "lightgbm>=4.7.0",
+    "matplotlib>=3.11.1",
+    "numba>=0.62.1",
+    "numpy==2.3.3",
+    "optuna>=4.9.0",
+    "pandas==2.2.3",
+    "pyarrow==20.0.0",
+    "scikit-learn>=1.9.0",
+    "scipy>=1.18.0",
+    "seaborn>=0.13.2",
+    "shap>=0.52.0",
+    "xgboost>=3.3.0",
+]
+
+[project.scripts]
+projeto-integrador = "projeto_integrador:main"
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
