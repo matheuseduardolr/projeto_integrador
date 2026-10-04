@@ -8,7 +8,7 @@
 
 ## Overview
 
-Projeto de **Ciência de Dados** aplicado ao problema de **customer churn** no setor de telecomunicações, estruturado como um pipeline encadeado de duas etapas: um modelo de **classificação supervisionada** identifica os clientes com maior propensão a cancelar o serviço e, em seguida, um algoritmo de **clustering** segmenta exclusivamente essa população sinalizada em perfis comportamentais. A diferença em relação a um modelo de churn convencional é que a entrega não é apenas uma lista de risco, mas segmentos com receita exposta quantificada e estratégia de retenção definida por perfil, conectando o modelo preditivo à decisão de negócio. Sobre a base pública IBM Telco Customer Churn (7.043 clientes, 21 variáveis), o modelo **XGBoost** selecionado alcançou **AUC-ROC de 0,847, acurácia de 80,6% e precisão de 66,4%** em conjunto de teste *hold-out*, o equivalente a aproximadamente **2,5x a taxa base** de cancelamento, sinalizando 1.556 clientes (22,1% da carteira). A segmentação com **K-Means (K=3)** sobre esses clientes revelou três perfis distintos que expõem **R$ 123,4 mil de receita mensal** — R$ 1,48 milhão em projeção anual — com 59% concentrados em um único segmento, evidência que sustenta a priorização diferenciada de canais e ofertas de retenção. A interpretabilidade foi tratada com **SHAP values**, confirmando que as variáveis criadas na etapa de *feature engineering* dominam a predição. Desenvolvido como Projeto Integrador da Especialização em Ciência de Dados da **UTFPR**.
+Projeto de **Ciência de Dados** aplicado ao problema de **customer churn** no setor de telecomunicações, estruturado como um pipeline encadeado de duas etapas: um modelo de **classificação supervisionada** identifica os clientes com maior propensão a cancelar o serviço e, em seguida, um algoritmo de **clustering** segmenta exclusivamente essa população sinalizada em perfis comportamentais. A diferença em relação a um modelo de churn convencional é que a entrega não é apenas uma lista de risco, mas **núcleos acionáveis** com volume, fatura e receita exposta — a área comercial é quem desenha as campanhas sobre cada perfil. Sobre a base pública IBM Telco Customer Churn (7.043 clientes, 21 variáveis), o modelo **XGBoost** selecionado alcançou **AUC-ROC de 0,847, acurácia de 80,6% e precisão de 66,4%** em conjunto de teste *hold-out*, o equivalente a aproximadamente **2,5x a taxa base** de cancelamento, sinalizando 1.556 clientes (22,1% da carteira). A segmentação com **K-Means (K=3)** sobre esses clientes revelou três perfis distintos que expõem **R$ 123,4 mil de receita mensal** — R$ 1,48 milhão em projeção anual — com 59% concentrados em um único segmento. A interpretabilidade foi tratada com **SHAP values**, confirmando que as variáveis criadas na etapa de *feature engineering* dominam a predição. Desenvolvido como Projeto Integrador da Especialização em Ciência de Dados da **UTFPR**.
 
 ## Tech Stack
 
@@ -33,8 +33,10 @@ projeto_integrador/
 │   ├── artigo/                      # artigo científico em LaTeX (formato SBC)
 │   │   ├── article.tex
 │   │   ├── referencias.bib
+│   │   ├── roteiro_slides.txt       # briefing para slides (NotebookLM)
 │   │   └── figuras/                 # figuras extraídas das saídas dos notebooks
 │   └── modelo artigo/               # template da disciplina
+├── estudo_piloto/                   # primeiro recorte (1.000 clientes, 2 variáveis)
 ├── data/
 │   ├── raw/                         # dataset original (IBM Telco Customer Churn)
 │   ├── interm/                      # base consolidada após limpeza (Parquet)
@@ -46,7 +48,7 @@ projeto_integrador/
 │   ├── 03_feature_store.ipynb       # feature engineering e pré-processamento
 │   ├── 04_churn.ipynb               # modelagem preditiva e interpretabilidade
 │   ├── 05_segmentacao.ipynb         # clustering dos clientes em risco
-│   └── 06_relatorio.ipynb           # métricas de negócio e plano de retenção
+│   └── 06_relatorio.ipynb           # métricas de negócio + exemplo ilustrativo de leitura comercial
 ├── src/projeto_integrador/
 ├── extrai_figuras.py                # exporta as figuras dos notebooks para o artigo
 ├── pyproject.toml                   # dependências gerenciadas com uv
@@ -79,6 +81,6 @@ Comparação de três algoritmos de ensemble — **Random Forest, XGBoost e Ligh
 
 Aplicação de **K-Means** exclusivamente sobre os 1.556 clientes sinalizados pelo modelo, com o número de clusters definido por **Elbow Method** e **Silhouette Score**, e **DBSCAN** avaliado como comparativo. Projeção por **PCA** para inspeção visual da separação entre grupos. Os três segmentos resultantes foram caracterizados por tempo de relacionamento, patamar de fatura, tipo de acesso e serviços contratados, gerando perfis interpretáveis pela área comercial.
 
-### 6. Relatório de Impacto e Recomendação de Negócio
+### 6. Relatório de Impacto
 
-Tradução dos segmentos em **métricas de negócio**: volume de clientes, taxa real de cancelamento, receita mensal exposta e projeção anual por perfil. O resultado central é o contraste entre volume e valor — um segmento concentra 15,5% dos clientes sinalizados mas apenas 8,3% da receita exposta, enquanto outro reúne 57,1% dos clientes e 59,0% da receita — o que justifica economicamente canais de contato com custos distintos. Cada segmento recebeu **plano de retenção** com prioridade, canal, oferta e **KPI** de acompanhamento, consolidado em artefato pronto para consumo por **CRM** ou dashboards. Os resultados foram documentados em artigo científico no formato SBC.
+Tradução dos segmentos em **métricas de negócio**: volume de clientes, taxa real de cancelamento, receita mensal exposta e projeção anual por perfil. O resultado central é o contraste entre volume e valor — um segmento concentra 15,5% dos clientes sinalizados mas apenas 8,3% da receita exposta, enquanto outro reúne 57,1% dos clientes e 59,0% da receita. Essa leitura é a **saída principal** do pipeline: três núcleos distintos para a empresa tratar de forma diferenciada. Oferta, canal e KPI eventuais no notebook são só um exemplo de como a operação *pode* ler cada perfil — quem define a campanha é a área comercial. Os resultados foram documentados em artigo científico no formato SBC, precedido por um estudo piloto.

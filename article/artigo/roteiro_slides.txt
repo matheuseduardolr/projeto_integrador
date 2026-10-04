@@ -1,0 +1,265 @@
+ROTEIRO DA APRESENTAÇÃO — BANCA (~12 minutos, 16 slides)
+
+Como usar no NotebookLM
+- Envie também o article.tex (ou o PDF do artigo) e este arquivo.
+- Peça slides acadêmicos, sóbrios, sem enfeite. Pouco texto por slide (4 a 6 linhas).
+- Figuras do artigo estão em article/artigo/figuras/. Use só as indicadas abaixo.
+- Tese que não pode errar: a saída principal NÃO é um plano de ofertas. A saída
+  principal é a segmentação K-Means dos clientes já sinalizados como em risco,
+  gerando núcleos acionáveis para a EMPRESA desenhar as próprias ações.
+  Qualquer campanha na tela é EXEMPLO, não o produto.
+
+Autor: Matheus Eduardo Laurindo do Rego
+Curso: Especialização em Ciência de Dados — UTFPR
+Título: Predição de Churn e Segmentação Encadeada de Clientes em Risco no Setor de Telecomunicações
+
+
+========================================================================
+SLIDE 1 — Capa
+========================================================================
+No slide: título, nome, UTFPR, Especialização em Ciência de Dados, e-mail.
+
+Fale (~30s): apresente-se e leia o título sem explicar o método ainda.
+
+
+========================================================================
+SLIDE 2 — Roteiro
+========================================================================
+No slide (só títulos):
+1. Problema e proposta
+2. Estudo piloto
+3. Método (duas etapas)
+4. Resultados da classificação
+5. Segmentação e núcleos
+6. Limitações e conclusões
+
+Fale (~20s): percorra a lista. Não detalhe.
+
+
+========================================================================
+SLIDE 3 — O problema
+========================================================================
+No slide:
+- Adquirir cliente custa muito mais do que reter.
+- Ciência de Dados costuma parar num classificador de churn: “quem cancela?”
+- Isso gera uma lista grande e homogênea.
+- Sem perfil, a empresa trata todo mundo igual e gasta mal o orçamento.
+
+Fale (~45s): o modelo isolado resolve só metade. Falta qualificar a lista
+para a operação não usar o mesmo tratamento em fatura de R$ 40 e de R$ 95.
+
+NÃO diga que o projeto “entrega a campanha personalizada”.
+
+
+========================================================================
+SLIDE 4 — A proposta (duas etapas)
+========================================================================
+No slide:
+Etapa 1 — Classificação: quem está em risco (XGBoost, limiar calibrado).
+Etapa 2 — K-Means SÓ nesses sinalizados (não na base inteira).
+Saída principal: núcleos acionáveis (volume, fatura, receita exposta).
+Quem define a campanha: a empresa, com base nesses núcleos.
+
+Fale (~50s): o agrupamento usa a saída operacional do modelo (inclui falso
+positivo), porque no dia a dia o rótulo verdadeiro ainda não existe.
+Diferencial = encadear classificação → segmentação da lista de risco.
+
+
+========================================================================
+SLIDE 5 — Estudo piloto (ciclo 1)
+========================================================================
+No slide:
+- 1.000 clientes; só tenure + tipo de contrato
+- Regressão logística, limiar 0,5
+- AUC 0,787 | acurácia 75,5% | precisão 55,3% | F1 46,2%
+- 198 sinalizados; K = 2 (fibra vs DSL); R$ 11,6 mil expostos
+- Conclusão do piloto: há sinal, mas o recorte não chega nas metas nem
+  gera núcleos utilizáveis
+
+Fale (~40s): o piloto validou viabilidade. O artigo é o ciclo 2: base
+cheia, 47 features, limiar calibrado, K = 3.
+
+
+========================================================================
+SLIDE 6 — Método em 6 notebooks
+========================================================================
+No slide, tabela curta:
+NB01 Extração
+NB02 EDA
+NB03 Feature store (80/20 estratificado)
+NB04 Churn + SHAP
+NB05 K-Means nos sinalizados  ← entrega central
+NB06 Métricas de impacto por núcleo
+
+Fale (~35s): cada notebook é autônomo e grava Parquet. Python 3.12.
+Não perca tempo em bibliotecas.
+
+
+========================================================================
+SLIDE 7 — O que a EDA mostrou
+========================================================================
+Figura sugerida: figuras/eda_contrato.png
+
+No slide:
+- Churn global 26,5% (1.869 de 7.043)
+- Contrato mensal 42,7% vs bienal 2,8%
+- Quem cancela: fatura mensal maior, tenure menor (18 vs 38 meses)
+- Isso motivou as features derivadas (faixas de tenure, escore de risco)
+
+Fale (~45s): o discriminante mais forte é o contrato. Por isso o piloto
+usou só tenure e contrato — e mesmo assim não bastou.
+
+
+========================================================================
+SLIDE 8 — Features e modelagem
+========================================================================
+No slide:
+- 21 colunas → 47 atributos (tempo, financeiro, serviços, risco/interação)
+- RF, XGBoost, LightGBM; desbalanceamento por peso de classe (não SMOTE)
+- Optuna, 40 tentativas, CV 5 folds
+- Objetivo: S = 0,6·F(β=0,5) + 0,4·acurácia (falso positivo tem custo)
+- Limiar entra DENTRO da otimização, não depois
+
+Fale (~40s): a meta de negócio é precisão, porque cada sinalização vira contato.
+
+
+========================================================================
+SLIDE 9 — Qual modelo ganhou
+========================================================================
+No slide, tabela (CV):
+XGBoost    AUC 0,847  Acc 80,6%  Prec 66,3%  F1 59,7%  S 0,703  ← escolhido
+LightGBM   AUC 0,848  Acc 80,5%  Prec 65,2%  F1 60,5%  S 0,701
+RF         AUC 0,847  Acc 80,4%  Prec 64,7%  F1 60,7%  S 0,700
+Limiar calibrado: 0,795
+
+Fale (~40s): os três empatam. O gargalo é a base, não o algoritmo.
+XGBoost ganhou no escore composto. Reportar com limiar 0,5 seria enganoso.
+
+
+========================================================================
+SLIDE 10 — Teste hold-out
+========================================================================
+Figura sugerida: figuras/avaliacao_modelo.png
+
+No slide (números grandes):
+AUC 0,847 | Acurácia 80,6% | Precisão 66,4% | Recall 54,0% | F1 59,6%
+202 VP, 102 FP, 172 FN (de 374 churns no teste)
+Precisão ≈ 2,5× a taxa base (26,5%)
+Meta acurácia 80%: atingida. Meta F1 80%: não — teto da base ~64%
+
+Fale (~60s): dois em cada três contatados cancelariam de fato.
+O painel do limiar mostra que nenhum corte entrega F1 e acurácia 80% juntos.
+Isso já se anunciava no piloto; aqui fica claro que o limite é o dado
+(sem consumo, atendimento, qualidade de serviço).
+
+
+========================================================================
+SLIDE 11 — SHAP (o modelo usa o quê?)
+========================================================================
+Figura sugerida: figuras/shap_beeswarm.png
+
+No slide:
+- 1º interação fatura × contrato mensal
+- 2º escore de risco (feature criada)
+- 3º tenure
+- Efeitos batem com a EDA (tenure alto reduz risco)
+- Não usa demografia no topo (gênero fora do ranking)
+
+Fale (~45s): a engenharia de features foi o ganho de verdade.
+SHAP explica o MODELO, não causa. Não prometa que “baixar a fatura reduz churn”.
+
+
+========================================================================
+SLIDE 12 — Lista em risco → entrada do K-Means
+========================================================================
+Figura sugerida: figuras/selecao_k.png
+
+No slide:
+- 1.556 sinalizados (22,1% da base), limiar 0,795
+- Precisão honesta = a do teste (66,4%); 69,5% na base cheia é otimista
+- K de 2 a 10; melhor silhueta em K = 3 (0,283)
+- DBSCAN não achou grupos (um único cluster)
+
+Fale (~40s): silhueta baixa é esperada — todo mundo já é alto risco.
+Não compare com a silhueta 0,485 do piloto (K = 2, espaço pequeno).
+K = 3 também é o que uma equipe comercial consegue operar.
+
+
+========================================================================
+SLIDE 13 — Os três núcleos (SAÍDA PRINCIPAL)
+========================================================================
+Este é o slide mais importante da banca.
+
+No slide, tabela:
+
+           Seg. 0              Seg. 1                 Seg. 2
+Clientes   241 (15,5%)         427 (27,4%)            888 (57,1%)
+Tenure     2,7 meses           26,7 meses             4,8 meses
+Fatura     R$ 42,47            R$ 94,54               R$ 81,93
+Acesso     DSL                 Fibra                  Fibra
+Churn      65,6%               66,5%                  72,1%
+
+Fale (~55s): o classificador deu a lista; o K-Means deu os núcleos.
+0 = novos DSL baratos. 1 = veteranos fibra caros. 2 = novos fibra, maior risco.
+Isso é o que a empresa leva: três grupos distintos, não uma campanha pronta.
+
+
+========================================================================
+SLIDE 14 — Por que os núcleos importam (receita)
+========================================================================
+No slide:
+Receita mensal exposta total: R$ 123,4 mil (≈ R$ 1,48 milhão/ano)
+Seg. 0:  8,3% da receita
+Seg. 1: 32,7%
+Seg. 2: 59,0%
+Volume ≠ valor. Campanha única é ineficiente.
+
+Fale (~50s): 15,5% dos nomes (seg. 0) carregam só 8,3% do dinheiro.
+O seg. 2 concentra quase 60% da exposição.
+A empresa agora PODE (e deve) tratar cada núcleo diferente.
+Nós não ditamos o canal nem o desconto.
+
+
+========================================================================
+SLIDE 15 — Exemplo de leitura (deixe claro que é exemplo)
+========================================================================
+Título no slide: “Exemplo de leitura — a ação cabe à empresa”
+
+No slide, no máximo três linhas, uma por núcleo, em tom hipotético:
+- 0: hipótese de atrito de adoção → canal barato faz sentido
+- 1: conta alta + sem suporte → contato humano pode se pagar
+- 2: fibra recente + alto risco → prioridade operacional
+
+Fale (~35s): isto NÃO é a entrega. É só para mostrar que os perfis
+são legíveis. Oferta, KPI e script de contato a operação define.
+
+Se o slide ficar prescritivo demais (D+7, 10%, 15%), corte esses números.
+
+
+========================================================================
+SLIDE 16 — Limitações, conclusões e fecho
+========================================================================
+No slide, duas colunas curtas.
+
+Limitações:
+- F1 80% inatingível nesta base
+- Sem tempo (não dá sobrevivência / validação temporal)
+- Silhueta 0,283: corte útil, não grupos naturais
+- Receita exposta ≠ perda esperada
+- SHAP ≠ causalidade
+
+Conclusões:
+- Saída: núcleos K-Means após o modelo de risco
+- Limiar importa mais que o algoritmo
+- Features derivadas no topo do SHAP
+- Próximo passo da empresa: desenhar e testar (A/B) ações por núcleo
+
+Fale (~50s): feche na frase: “não vendemos a campanha; vendemos os núcleos
+para a empresa não tratar todo mundo igual.” Agradeça e abra perguntas.
+
+
+NÚMEROS PARA NÃO ERRAR NA BANCA
+Piloto: 1.000 clientes | AUC 0,787 | acc 75,5% | prec 55,3% | F1 46,2% | K=2
+Artigo: 7.043 | XGBoost | limiar 0,795 | AUC 0,847 | acc 80,6% | prec 66,4%
+        F1 59,6% | 1.556 em risco | R$ 123,4 mil/mês | K=3 | silhueta 0,283
+)
