@@ -46,6 +46,12 @@ kaggle.json
 # Contexto local do projeto (não versionar)
 PROJECT_CONTEXT.md
 
+# MLOps / experimentos
+mlruns/
+mlartifacts/
+.pytest_cache/
+.mlflow/
+
 # SO / IDE
 .DS_Store
 Thumbs.db

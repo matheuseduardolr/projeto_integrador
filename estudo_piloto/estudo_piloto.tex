@@ -31,8 +31,9 @@ Universidade Tecnológica Federal do Paraná (UTFPR)
   risk (19.8\% of the sample) expose R\$~11.6k of monthly revenue and split
   into two coarse K-Means groups. The results confirm that the problem is
   tractable, but remain well below the project's operational targets and
-  motivate a complete pipeline with the full attribute set, feature
-  engineering, threshold calibration and finer segmentation.
+  motivate a recurring operational pipeline with the full attribute set,
+  feature engineering, threshold calibration, finer segmentation and
+  per-cycle republication of the nuclei.
 \end{abstract}
 
 \begin{resumo}
@@ -45,8 +46,9 @@ Universidade Tecnológica Federal do Paraná (UTFPR)
   amostra) expõem R\$~11,6 mil de receita mensal e se separam em dois grupos
   grosseiros de K-Means. Os resultados confirmam que o problema é tratável,
   mas ficam claramente abaixo das metas operacionais do projeto e motivam um
-  \textit{pipeline} completo com o conjunto inteiro de atributos, engenharia
-  de \textit{features}, calibração de limiar e segmentação mais refinada.
+  \textit{pipeline} recorrente --- extração, treino e pontuação --- com o
+  conjunto inteiro de atributos, engenharia de \textit{features}, calibração
+  de limiar e segmentação mais refinada, republicando núcleos a cada ciclo.
 \end{resumo}
 
 \section{Introdução}
@@ -76,7 +78,7 @@ acionáveis o bastante para a empresa diferenciar o tratamento --- ficam
 explicitamente fora do escopo desta etapa. O
 que se espera aqui é um diagnóstico de viabilidade e um conjunto de
 resultados iniciais que justifiquem, ou não, o investimento no
-\textit{pipeline} final.
+\textit{pipeline} operacional recorrente.
 
 O texto está organizado da seguinte forma. A Seção~\ref{sec:2} delimita o
 escopo e as simplificações. A Seção~\ref{sec:3} descreve a metodologia. A
@@ -313,8 +315,8 @@ fica com a empresa.
 Quatro lições do piloto orientam o desenho do trabalho definitivo.
 
 \textbf{Há sinal, mas o recorte mínimo não chega perto das metas.} Superar a
-taxa base por um fator de 2,1 valida o uso da IBM Telco como
-\textit{proxy}. Não valida a meta de F1 de 80\%, nem sequer a de acurácia,
+taxa base por um fator de 2,1 valida o uso da IBM Telco para o problema
+de churn em telecomunicações. Não valida a meta de F1 de 80\%, nem sequer a de acurácia,
 quando o modelo vê só tenure e contrato. O estudo completo precisa incorporar
 o restante dos atributos e testar se variáveis derivadas --- e não apenas
 mais um algoritmo --- fecham essa folga.
@@ -335,8 +337,9 @@ fibra versus DSL já mostra que volume e valor não caminham juntos, na linha
 dos modelos híbridos de classificação seguida de agrupamento
 \cite{ullah2019}. O estudo completo deve restringir o agrupamento aos
 clientes sinalizados por um modelo mais completo e testar um $K$ maior,
-caracterizando cada perfil em receita exposta --- para que a empresa, e não
-o modelo, defina a ação por núcleo.
+caracterizando cada perfil em receita exposta e embutindo esse encadeamento
+num \textit{pipeline} que possa republicar os núcleos a cada ciclo --- para
+que a empresa, e não o modelo, defina a ação por núcleo.
 
 \section{Conclusão}
 \label{sec:6}
@@ -356,12 +359,13 @@ com precisão o que ainda falta --- o conjunto completo de atributos,
 engenharia de \textit{features}, calibração de limiar, comparação de
 \textit{ensembles} e segmentação mais refinada, com tradução financeira por
 perfil. Esses itens constituem o escopo do estudo completo, documentado no
-artigo \textit{Predição de Churn e Segmentação Encadeada de Clientes em
+artigo \textit{Pipeline para Predição de Churn e Segmentação de Clientes em
 Risco no Setor de Telecomunicações}: base integral, 47 atributos derivados,
-XGBoost com limiar calibrado e K-Means com $K = 3$ sobre os sinalizados,
-gerando núcleos acionáveis --- a saída principal daquele trabalho, sobre a
-qual a empresa desenha as próprias campanhas. Os resultados aqui reportados
-são iniciais e, por desenho, inferiores aos desse \textit{pipeline}.
+XGBoost com limiar calibrado, K-Means com $K = 3$ sobre os sinalizados e um
+\textit{pipeline} operacional que republica os núcleos a cada ciclo --- a
+saída daquele trabalho, sobre a qual a empresa desenha as próprias
+campanhas. Os resultados aqui reportados são iniciais e, por desenho,
+inferiores aos desse \textit{pipeline}.
 
 \bibliographystyle{sbc}
 \bibliography{referencias}

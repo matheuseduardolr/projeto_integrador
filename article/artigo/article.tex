@@ -8,7 +8,7 @@
 \usepackage[utf8]{inputenc}
 \sloppy
 
-\title{Predição de Churn e Segmentação Encadeada de Clientes em Risco no Setor de Telecomunicações}
+\title{Pipeline para Predição de Churn e Segmentação de Clientes em Risco no Setor de Telecomunicações}
 
 \author{Matheus Eduardo Laurindo do Rego\inst{1}}
 
@@ -23,32 +23,32 @@ Universidade Tecnológica Federal do Paraná (UTFPR)
 \maketitle
 
 \begin{abstract}
-  This work presents a two-stage churn pipeline on the public IBM Telco Customer
-  Churn dataset (7,043 customers). First, Random Forest, XGBoost and LightGBM are
-  tuned with Optuna over a composite objective balancing F-measure and accuracy,
-  with a calibrated decision threshold. XGBoost was selected, reaching AUC-ROC of
-  0.847, accuracy of 80.6\% and precision of 66.4\% on the hold-out set, and SHAP
-  values show that engineered features dominate the prediction. Second, only the
-  customers flagged as at risk (1,556 or 22.1\% of the base) are segmented with
-  K-Means (K = 3), yielding three actionable profiles that expose R\$ 123.4k of
-  monthly revenue at risk, 59.0\% of it in a single segment. The main output is
-  this segmentation of at-risk customers, so the firm can design distinct
-  actions per profile instead of treating the whole list alike.
+  This work presents an operational pipeline for telecom churn: each cycle,
+  a classifier flags at-risk customers and K-Means segments only that subset
+  into actionable nuclei. On the public IBM Telco Customer Churn dataset
+  (7,043 customers), Random Forest, XGBoost and LightGBM are tuned with Optuna
+  over a composite F-measure/accuracy objective and a calibrated threshold.
+  XGBoost reaches AUC-ROC of 0.847, accuracy of 80.6\% and precision of 66.4\%
+  on the hold-out set; 1,556 customers (22.1\%) are flagged and grouped with
+  $K = 3$, exposing R\$ 123.4k of monthly revenue, 59.0\% in one nucleus. The
+  deliverable is the recurring pipeline --- extract, train, score --- whose
+  per-cycle output is those nuclei, so the firm can act differently on each
+  profile instead of treating a one-off list alike.
 \end{abstract}
 
 \begin{resumo}
-  Este trabalho apresenta um \textit{pipeline} de churn em duas etapas sobre a
-  base pública IBM Telco Customer Churn (7.043 clientes). Na primeira, Random
-  Forest, XGBoost e LightGBM são otimizados com Optuna sobre um objetivo composto
-  que equilibra F-medida e acurácia, com limiar de decisão calibrado. O XGBoost
-  foi selecionado, alcançando AUC-ROC de 0,847, acurácia de 80,6\% e precisão de
-  66,4\% no teste, e a análise SHAP mostra que as variáveis derivadas dominam a
-  predição. Na segunda, apenas os clientes sinalizados como em risco (1.556, ou
-  22,1\% da base) são segmentados com K-Means (K = 3), gerando três perfis
-  acionáveis que expõem R\$ 123,4 mil de receita mensal em risco, com 59,0\% em
-  um único segmento. A saída principal é essa segmentação dos clientes em
-  risco, para que a empresa defina ações distintas por perfil em vez de
-  tratar a lista inteira da mesma forma.
+  Este trabalho apresenta um \textit{pipeline} operacional de churn em
+  telecomunicações: a cada ciclo, um classificador sinaliza clientes em risco
+  e o K-Means agrupa \textbf{somente} esse subconjunto em núcleos acionáveis.
+  Sobre a base pública IBM Telco Customer Churn (7.043 clientes), Random
+  Forest, XGBoost e LightGBM são otimizados com Optuna sob um objetivo
+  composto de F-medida e acurácia, com limiar calibrado. O XGBoost alcança
+  AUC-ROC de 0,847, acurácia de 80,6\% e precisão de 66,4\% no teste; 1.556
+  clientes (22,1\%) são sinalizados e segmentados com $K = 3$, expondo
+  R\$ 123,4 mil de receita mensal, 59,0\% em um único núcleo. O entregável é
+  o \textit{pipeline} recorrente --- extração, treino e pontuação --- cuja
+  saída de cada corrida são esses núcleos, para a empresa atuar de forma
+  distinta por perfil em vez de tratar uma lista única e estática.
 \end{resumo}
 
 
@@ -69,30 +69,31 @@ ele indica \textit{quem} está em risco, mas não qualifica o perfil de
 cada cliente identificado. Na prática comercial, uma lista de milhares de
 clientes em risco sem qualquer qualificação de perfil tende a receber um
 tratamento único, o que desperdiça orçamento de retenção em clientes de baixo
-valor e oferece resposta genérica a clientes de alto valor.
+valor e oferece resposta genérica a clientes de alto valor. Quando o estudo
+não volta a rodar, a lista ainda morre: vira um recorte de um mês, e não um
+insumo da operação.
 
-Este trabalho aborda essa lacuna por meio de um \textit{pipeline} encadeado em
-duas etapas. A primeira etapa é um classificador de churn com limiar de decisão
+Este trabalho aborda as duas lacunas com um \textit{pipeline} operacional
+encadeado. A primeira etapa é um classificador de churn com limiar de decisão
 calibrado, que sinaliza um subconjunto da base como em risco. A segunda etapa
 aplica agrupamento não supervisionado \textbf{exclusivamente sobre esse
-subconjunto}, de modo que os segmentos resultantes não descrevem a base inteira,
-mas sim a população que o modelo considera prioritária para ação. Cada segmento
-é caracterizado por métricas de negócio (volume, fatura média, receita mensal
-exposta), gerando \textbf{perfis acionáveis}. A saída principal do trabalho
-é essa segmentação: ela permite que a área comercial defina ações distintas
-por núcleo, em vez de tratar todos os sinalizados da mesma forma. Eventuais
-ofertas exemplificadas mais adiante são apenas ilustrativas --- quem define
-a ação operacional é a empresa.
+subconjunto}, de modo que os segmentos não descrevem a base inteira, mas a
+população que o modelo considera prioritária para ação. Cada segmento é
+caracterizado por volume, fatura média e receita mensal exposta, gerando
+\textbf{núcleos acionáveis}. O entregável é o \textit{pipeline} que republica
+esses núcleos a cada ciclo --- por exemplo, na virada do mês --- para que a
+área comercial defina ações distintas por perfil. Eventuais ofertas
+exemplificadas mais adiante são apenas ilustrativas --- quem define a ação
+é a empresa.
 
 O estudo utiliza a base pública IBM Telco Customer Churn \cite{ibm2018}, com
-7.043 clientes e 21 atributos. O contexto de aplicação é o de uma operadora
-brasileira de banda larga: identificar assinantes com propensão a cancelar e
-qualificá-los por perfil comportamental, para que a operadora possa tratar
-cada núcleo de forma distinta. Como a base real da operadora não pode ser
-divulgada, a base
-pública foi adotada como \textit{proxy}, mantendo a estrutura de atributos
-típica do setor (tipo de contrato, forma de pagamento, tipo de acesso à
-internet, serviços agregados e faturamento).
+7.043 clientes e 21 atributos --- tipo de contrato, forma de pagamento,
+acesso à internet, serviços agregados e faturamento. É a estrutura típica
+do setor de telecomunicações. O contexto de aplicação é o das operadoras
+(por exemplo, de banda larga): identificar assinantes com propensão a
+cancelar e qualificá-los por perfil, para que a operação trate cada núcleo
+de forma distinta. Toda a evidência numérica deste trabalho vem dessa
+base pública.
 
 O \textit{pipeline} aqui descrito foi precedido por um estudo piloto sobre
 uma amostra de 1.000 clientes, com apenas tempo de relacionamento e tipo de
@@ -102,15 +103,16 @@ confirmou viabilidade --- AUC-ROC de 0,787 e precisão de 55,3\% no
 produziu só um corte binário, insuficiente para diferenciar núcleos. Este
 trabalho incorpora as recomendações daquele ciclo: o conjunto completo de
 atributos, engenharia de \textit{features}, calibração do limiar, comparação
-de \textit{ensembles} e K-Means com $K = 3$ sobre os sinalizados, gerando
-perfis acionáveis.
+de \textit{ensembles}, K-Means com $K = 3$ sobre os sinalizados e a
+via operacional que republica os núcleos a cada ciclo.
 
-As contribuições são: (i) um \textit{pipeline} modular de seis etapas, da
-extração à caracterização dos núcleos em risco; (ii) otimização com objetivo
-composto entre F-medida e acurácia e limiar de decisão calibrado; (iii)
-segmentação encadeada dos sinalizados em perfis acionáveis, com receita
-exposta por núcleo; (iv) análise SHAP que confronta o modelo com a
-exploração; e (v) o diagnóstico do teto empírico de desempenho da base.
+As contribuições são: (i) um \textit{pipeline} operacional recorrente
+(extração, treino, pontuação em lote e manifesto de produção), cuja saída
+de cada ciclo são núcleos acionáveis; (ii) o encadeamento classificação +
+K-Means somente sobre os sinalizados, com receita exposta por núcleo;
+(iii) otimização com objetivo composto e limiar calibrado; (iv) análise
+SHAP e o diagnóstico do teto empírico da base, no laboratório que define a
+receita depois repetida pelo \textit{pipeline}.
 
 O texto está organizado da seguinte forma: a Seção \ref{sec:2} apresenta os
 trabalhos relacionados; a Seção \ref{sec:3}, a metodologia; a Seção \ref{sec:4},
@@ -144,33 +146,36 @@ aqui: classificam com Random Forest (88,63\% de acerto) e depois agrupam os
 clientes de churn para gerar ofertas por grupo.
 
 Este trabalho se posiciona nessa linha de dois estágios e se diferencia em
-três pontos. Primeiro, o agrupamento opera sobre a saída operacional do
+quatro pontos. Primeiro, o agrupamento opera sobre a saída operacional do
 modelo --- os sinalizados pelo limiar calibrado, inclusive falsos positivos
---- e não sobre o rótulo verdadeiro, refletindo o uso real em que o rótulo é
-desconhecido no momento da ação. Segundo, a otimização é bayesiana
-\cite{akiba2019} sobre um objetivo composto de F-medida e acurácia, com o
-limiar otimizado dentro de cada avaliação. Terceiro, cada segmento é
-quantificado em receita exposta e descrito como perfil acionável, para que
-a empresa --- e não o modelo --- defina a ação por núcleo, fechando o ciclo
-entre predição e decisão apontado por \cite{hadden2007}.
+--- e não sobre o rótulo verdadeiro. Segundo, a otimização é bayesiana
+\cite{akiba2019} sobre um objetivo composto, com o limiar dentro de cada
+avaliação. Terceiro, cada segmento é quantificado em receita exposta, para
+que a empresa --- e não o modelo --- defina a ação por núcleo
+\cite{hadden2007}. Quarto, o encadeamento não fica num caderno: é um
+\textit{pipeline} de lote (treino, registro e pontuação) pensado para
+republicar os núcleos a cada ciclo, em linha com a dívida operacional de
+sistemas de aprendizado \cite{sculley2015} e com práticas de MLOps
+\cite{kreuzberger2023}.
 
 \section{Metodologia}
 \label{sec:3}
 
-O trabalho foi implementado em Python 3.12 e organizado em seis notebooks
-sequenciais, cada um autônomo e responsável por uma etapa do
-\textit{pipeline}, com persistência dos artefatos intermediários em disco no
-formato Parquet. A Tabela \ref{tab:pipeline} resume as etapas. As bibliotecas
-principais são \textit{pandas} e \textit{numpy} para manipulação de dados,
-\textit{scikit-learn} \cite{pedregosa2011} para pré-processamento, agrupamento e
-métricas, \textit{xgboost} \cite{chen2016} e \textit{lightgbm} \cite{ke2017}
-para os modelos de \textit{gradient boosting}, \textit{optuna}
-\cite{akiba2019} para otimização de hiperparâmetros e \textit{joblib} para
-serialização dos modelos.
+O trabalho tem duas vias. O laboratório --- seis notebooks sequenciais em
+Python 3.12, com artefatos em Parquet --- define a receita (Optuna, SHAP,
+escolha de $K$). A via operacional, no pacote \texttt{projeto\_integrador},
+repete extração, treino do XGBoost e do K-Means já escolhidos, promoção a
+\textit{Production} e pontuação em lote. A Tabela \ref{tab:pipeline} resume
+as etapas. As bibliotecas principais são \textit{pandas} e \textit{numpy},
+\textit{scikit-learn} \cite{pedregosa2011}, \textit{xgboost} \cite{chen2016},
+\textit{lightgbm} \cite{ke2017}, \textit{optuna} \cite{akiba2019} e
+\textit{joblib}.
 
 \begin{table}[ht]
 \centering
-\caption{Etapas do \textit{pipeline} e artefatos gerados.}
+\caption{Laboratório (notebooks) e via operacional do \textit{pipeline}.
+O NB06 grava \texttt{relatorio\_final.parquet}; o lote mensal grava o
+equivalente em \texttt{relatorio\_nucleos.parquet}.}
 \label{tab:pipeline}
 \small
 \begin{tabular}{|c|l|l|}
@@ -183,10 +188,26 @@ NB03 & Engenharia de \textit{features} e divisão & \texttt{treino/teste\_modela
 NB04 & Classificação e SHAP         & \texttt{modelo\_churn.pkl} \\
      &                              & \texttt{clientes\_em\_risco.parquet} \\ \hline
 NB05 & Segmentação dos sinalizados  & \texttt{clientes\_segmentados.parquet} \\ \hline
-NB06 & Relatório de impacto         & \texttt{relatorio\_final.parquet} \\
+NB06 & Relatório de impacto         & \texttt{relatorio\_final.parquet} \\ \hline
+Op.  & \texttt{extract}/\texttt{train}/\texttt{score} & \texttt{production.json}, \\
+     & (lote mensal)                 & \texttt{relatorio\_nucleos.parquet} \\
 \hline
 \end{tabular}
 \end{table}
+
+\subsection{Operação em lote}
+\label{sub:mlops}
+
+O ciclo operacional não exige orquestrador nem API em tempo real: churn de
+carteira é lote. A cada virada de ciclo, \texttt{extract} consolida e valida
+o schema; \texttt{train} refaz o classificador e o agrupamento com a receita
+já escolhida no laboratório, registra métricas e promove os artefatos a
+\textit{Production}; \texttt{score} lê somente esse manifesto e republica os
+núcleos (volume, fatura, receita exposta). Sem promoção, a pontuação não
+roda --- evita-se aplicar um pkl solto. A busca Optuna permanece no
+laboratório; o comando de treino não a redesenha. Por isso as tabelas da
+Seção~\ref{sec:4} descrevem a corrida de referência do laboratório, e não
+um retreino fresco. Campanha e KPI continuam fora do \textit{pipeline}.
 
 \subsection{Base de dados e consolidação}
 \label{sub:base}
@@ -627,7 +648,12 @@ concentra 57,1\% dos clientes e 59,0\% da receita. Uma abordagem única
 trataria igual quem paga R\$ 42,47 e quem paga R\$ 94,54. É isso que os
 núcleos entregam: a empresa deixa de operar uma lista homogênea e passa a
 enxergar grupos com materialidade e hipótese de risco distintas --- e, a
-partir daí, desenha as próprias campanhas.
+partir daí, desenha as próprias campanhas. Essa tabela é a corrida de
+referência do laboratório (Optuna, limiar 0,795), não um retreino fresco
+do comando \texttt{train}. O \texttt{score} operacional republica o mesmo
+tipo de artefato --- volume, fatura e receita por núcleo, em
+\texttt{relatorio\_nucleos.parquet} --- a cada ciclo, lendo só o
+manifesto \textit{Production}.
 
 A Tabela \ref{tab:playbook} apenas ilustra como esses perfis \textit{podem}
 ser lidos. Não é a saída do projeto nem uma recomendação prescritiva: canal,
@@ -681,21 +707,20 @@ experimento com grupo de controle.
 \section{Conclusão}
 \label{sec:5}
 
-Este trabalho desenvolveu um \textit{pipeline} de duas etapas para predição e
+Este trabalho desenvolveu um \textit{pipeline} operacional para predição e
 qualificação de risco de cancelamento em telecomunicações, sobre a base pública
-IBM Telco Customer Churn. A etapa de classificação comparou três algoritmos de
-conjunto otimizados por busca bayesiana com objetivo composto entre F-medida e
-acurácia, selecionando o XGBoost com AUC-ROC de 0,847, acurácia de 80,6\% e
-precisão de 66,4\% no conjunto de teste. A análise SHAP mostrou que as duas
-variáveis mais influentes são derivadas --- a interação entre fatura mensal e
-contrato mensal e o escore de risco estendido ---, com sentidos de efeito
-coerentes com a exploração. A etapa de segmentação aplicou K-Means com K = 3
-exclusivamente sobre os 1.556 clientes sinalizados como em risco, produzindo
-três perfis acionáveis que foram quantificados em R\$ 123,4 mil de receita
-mensal exposta, com 59,0\% concentrados em um único segmento. Essa
-segmentação --- e não um roteiro fixo de ofertas --- é a saída principal:
-ela dá à empresa núcleos distintos sobre os quais desenhar a própria
-retenção.
+IBM Telco Customer Churn. No laboratório, a classificação comparou três
+algoritmos de conjunto com Optuna e objetivo composto, selecionando o XGBoost
+com AUC-ROC de 0,847, acurácia de 80,6\% e precisão de 66,4\% no teste. A
+análise SHAP mostrou que as duas variáveis mais influentes são derivadas ---
+interação fatura $\times$ contrato mensal e escore de risco estendido. O
+K-Means com $K = 3$ sobre os 1.556 sinalizados produziu três núcleos
+quantificados em R\$ 123,4 mil de receita mensal, 59,0\% em um único
+segmento. O entregável não é essa fotografia: é o \textit{pipeline} que, a
+cada ciclo, volta a classificar, agrupar só os sinalizados e republicar os
+núcleos --- para a empresa não tratar a lista do mês como um bloco só, nem
+como um estudo que não roda de novo. Ofertas fixas continuam fora do
+escopo.
 
 Quatro conclusões se destacam. O encadeamento agrega valor de decisão: volume
 e valor não caminham juntos, o que impede tratar a lista de risco como um
@@ -707,11 +732,10 @@ refinar o modelo.
 
 Como trabalhos futuros: enriquecer a base com consumo, atendimento e
 qualidade de serviço \cite{ahmad2019}; substituir a exposição bruta por
-perda esperada e retorno de campanha \cite{verbeke2012}; incorporar dimensão
-temporal para sobrevivência; usar explicações individuais como insumo da
-área comercial; e validar, com grupo de controle, as ações que a empresa
-vier a definir sobre cada núcleo, abrindo caminho para modelagem de
-\textit{uplift}.
+perda esperada \cite{verbeke2012}; incorporar dimensão temporal; validar
+ações por núcleo com grupo de controle; e, no \textit{pipeline}, acrescentar
+alarme de deriva dos núcleos e retreino condicionado a queda de métrica ---
+sem inflar o lote mensal com orquestrador ou API.
 
 \section{Links}
 
