@@ -187,7 +187,7 @@ def build():
     # 5 arquitetura
     s = new_slide(prs)
     title(s, "O mesmo código roda de novo a cada carteira")
-    steps = ["Carteira\ndo mês", "extract +\nvalidate", "train\n(XGB + K-Means\n→ Production)", "score", "núcleos"]
+    steps = ["Carteira\ndo mês", "extract\n(Kaggle)", "train →\nchampion", "score", "núcleos"]
     for i, lab in enumerate(steps):
         box(s, 0.35 + i * 2.6, 1.35, 2.35, 1.7, fill=CARD, line=GREEN)
         slide_text = s.shapes.add_textbox(Inches(0.4 + i * 2.6), Inches(1.5), Inches(2.25), Inches(1.45))
@@ -202,7 +202,7 @@ def build():
             textbox(s, 2.55 + i * 2.6, 1.9, 0.4, 0.4, ["→"], size=18, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
     bullets(s, 0.55, 3.35, 12.2, 3.7, [
         "Os notebooks definem a receita (Optuna, SHAP, K = 3); o pacote operacional repete o lote no mês seguinte.",
-        "Sem o manifesto Production, o score não pontua — só entra modelo aprovado.",
+        "Sem champion no MLflow, o score não pontua — só entra modelo aprovado.",
         "Os números a seguir (1.556 clientes, R$ 123,4 mil) são a corrida de referência do laboratório; cada ciclo devolve o mesmo tipo de tabela.",
     ], size=17)
 

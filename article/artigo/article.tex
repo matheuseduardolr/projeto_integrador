@@ -107,7 +107,7 @@ de \textit{ensembles}, K-Means com $K = 3$ sobre os sinalizados e a
 via operacional que republica os núcleos a cada ciclo.
 
 As contribuições são: (i) um \textit{pipeline} operacional recorrente
-(extração, treino, pontuação em lote e manifesto de produção), cuja saída
+(extração via Kaggle, treino, registro no MLflow e pontuação em lote), cuja saída
 de cada ciclo são núcleos acionáveis; (ii) o encadeamento classificação +
 K-Means somente sobre os sinalizados, com receita exposta por núcleo;
 (iii) otimização com objetivo composto e limiar calibrado; (iv) análise
@@ -145,6 +145,18 @@ classificação. \cite{ullah2019} inverteram a ordem, mais próxima da adotada
 aqui: classificam com Random Forest (88,63\% de acerto) e depois agrupam os
 clientes de churn para gerar ofertas por grupo.
 
+No mercado, a predição de churn já é oferta corrente. Operadoras mantêm
+modelos internos de retenção, sem publicar o encadeamento entre escore e
+agrupamento. Plataformas de nuvem --- por exemplo o \textit{Customer Churn}
+do Amazon SageMaker e aceleradores equivalentes em Databricks e Azure ---
+classificam bases no formato IBM Telco e em geral encerram no escore.
+\textit{Suites} de CRM e inteligência de clientes (Salesforce, SAS, Adobe)
+combinam propensão com campanha; quando há segmentação, ela costuma ser RFM
+ou demográfica sobre a carteira inteira, não sobre o subconjunto que o
+classificador mandou para a operação. Em todos esses casos resolve-se
+\textit{quem} está em risco; falta o recorte \textit{qual perfil, entre os
+sinalizados, e de novo a cada ciclo}.
+
 Este trabalho se posiciona nessa linha de dois estágios e se diferencia em
 quatro pontos. Primeiro, o agrupamento opera sobre a saída operacional do
 modelo --- os sinalizados pelo limiar calibrado, inclusive falsos positivos
@@ -156,7 +168,28 @@ que a empresa --- e não o modelo --- defina a ação por núcleo
 \textit{pipeline} de lote (treino, registro e pontuação) pensado para
 republicar os núcleos a cada ciclo, em linha com a dívida operacional de
 sistemas de aprendizado \cite{sculley2015} e com práticas de MLOps
-\cite{kreuzberger2023}.
+\cite{kreuzberger2023}. A Tabela \ref{tab:relacionados} resume o
+posicionamento: o diferencial não é a métrica do classificador, e sim sobre
+quem se agrupa e o que se devolve a cada ciclo.
+
+\begin{table}[ht]
+\centering
+\caption{Posicionamento perante a literatura e o mercado.}
+\label{tab:relacionados}
+\small
+\begin{tabular}{|l|l|l|p{3.6cm}|}
+\hline
+\textbf{Referência} & \textbf{Encadeamento} & \textbf{Unidade do agrupamento} & \textbf{Entrega} \\
+\hline
+Verbeke (2012) & só classifica & --- & ranking / lucro \\ \hline
+Ahmad (2019) & só classifica & --- & escore (AUC 93,3\% com dados de rede) \\ \hline
+Bose (2009) & agrupa $\rightarrow$ classifica & base inteira & \textit{lift} \\ \hline
+Ullah (2019) & classifica $\rightarrow$ agrupa & quem já cancelou (rótulo) & ofertas por grupo \\ \hline
+Cloud / CRM & classifica (às vezes RFM) & carteira inteira & lista ou \textit{dashboard} \\ \hline
+Este trabalho & classifica $\rightarrow$ agrupa & sinalizados pelo limiar & núcleos (volume, fatura, receita) + \textit{pipeline} recorrente \\
+\hline
+\end{tabular}
+\end{table}
 
 \section{Metodologia}
 \label{sec:3}
@@ -164,8 +197,9 @@ sistemas de aprendizado \cite{sculley2015} e com práticas de MLOps
 O trabalho tem duas vias. O laboratório --- seis notebooks sequenciais em
 Python 3.12, com artefatos em Parquet --- define a receita (Optuna, SHAP,
 escolha de $K$). A via operacional, no pacote \texttt{projeto\_integrador},
-repete extração, treino do XGBoost e do K-Means já escolhidos, promoção a
-\textit{Production} e pontuação em lote. A Tabela \ref{tab:pipeline} resume
+repete extração pela API do Kaggle, treino do XGBoost e do K-Means já
+escolhidos, registro no MLflow (\textit{candidate} $\rightarrow$
+\textit{champion}) e pontuação em lote. A Tabela \ref{tab:pipeline} resume
 as etapas. As bibliotecas principais são \textit{pandas} e \textit{numpy},
 \textit{scikit-learn} \cite{pedregosa2011}, \textit{xgboost} \cite{chen2016},
 \textit{lightgbm} \cite{ke2017}, \textit{optuna} \cite{akiba2019} e
@@ -189,8 +223,8 @@ NB04 & Classificação e SHAP         & \texttt{modelo\_churn.pkl} \\
      &                              & \texttt{clientes\_em\_risco.parquet} \\ \hline
 NB05 & Segmentação dos sinalizados  & \texttt{clientes\_segmentados.parquet} \\ \hline
 NB06 & Relatório de impacto         & \texttt{relatorio\_final.parquet} \\ \hline
-Op.  & \texttt{extract}/\texttt{train}/\texttt{score} & \texttt{production.json}, \\
-     & (lote mensal)                 & \texttt{relatorio\_nucleos.parquet} \\
+Op.  & \texttt{extract}/\texttt{train}/\texttt{promote}/\texttt{score} & \textit{champion} (MLflow), \\
+     & (lote; FastAPI)               & \texttt{relatorio\_nucleos.parquet} \\
 \hline
 \end{tabular}
 \end{table}
@@ -198,16 +232,20 @@ Op.  & \texttt{extract}/\texttt{train}/\texttt{score} & \texttt{production.json}
 \subsection{Operação em lote}
 \label{sub:mlops}
 
-O ciclo operacional não exige orquestrador nem API em tempo real: churn de
-carteira é lote. A cada virada de ciclo, \texttt{extract} consolida e valida
-o schema; \texttt{train} refaz o classificador e o agrupamento com a receita
-já escolhida no laboratório, registra métricas e promove os artefatos a
-\textit{Production}; \texttt{score} lê somente esse manifesto e republica os
-núcleos (volume, fatura, receita exposta). Sem promoção, a pontuação não
-roda --- evita-se aplicar um pkl solto. A busca Optuna permanece no
-laboratório; o comando de treino não a redesenha. Por isso as tabelas da
-Seção~\ref{sec:4} descrevem a corrida de referência do laboratório, e não
-um retreino fresco. Campanha e KPI continuam fora do \textit{pipeline}.
+O ciclo operacional não exige orquestrador nem inferência em tempo real:
+churn de carteira é lote. A porta oficial é uma API FastAPI que dispara as
+etapas. A cada virada de ciclo, \texttt{extract} baixa a IBM Telco na API
+do Kaggle, consolida e valida o schema; \texttt{train} refaz o classificador
+e o agrupamento com a receita já escolhida no laboratório e registra
+\texttt{dev.churn-pipeline} como \textit{candidate} no MLflow;
+\texttt{promote} eleva essa versão a \textit{champion} em
+\texttt{prod.churn-pipeline}; \texttt{score} só pontua com o alias
+\textit{champion} e republica os núcleos (volume, fatura, receita exposta).
+Sem promoção, a pontuação não roda --- evita-se aplicar um pkl solto. A
+busca Optuna permanece no laboratório; o comando de treino não a redesenha.
+Por isso as tabelas da Seção~\ref{sec:4} descrevem a corrida de referência
+do laboratório, e não um retreino fresco. Campanha e KPI continuam fora do
+\textit{pipeline}.
 
 \subsection{Base de dados e consolidação}
 \label{sub:base}
@@ -652,8 +690,8 @@ partir daí, desenha as próprias campanhas. Essa tabela é a corrida de
 referência do laboratório (Optuna, limiar 0,795), não um retreino fresco
 do comando \texttt{train}. O \texttt{score} operacional republica o mesmo
 tipo de artefato --- volume, fatura e receita por núcleo, em
-\texttt{relatorio\_nucleos.parquet} --- a cada ciclo, lendo só o
-manifesto \textit{Production}.
+\texttt{relatorio\_nucleos.parquet} --- a cada ciclo, lendo só o modelo
+com alias \textit{champion} no MLflow.
 
 A Tabela \ref{tab:playbook} apenas ilustra como esses perfis \textit{podem}
 ser lidos. Não é a saída do projeto nem uma recomendação prescritiva: canal,

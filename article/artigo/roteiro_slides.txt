@@ -1,4 +1,4 @@
-ROTEIRO DA APRESENTAÇÃO — BANCA (12 a 15 minutos, 14 slides)
+ROTEIRO DA APRESENTAÇÃO — BANCA (13 a 16 minutos, 15 slides)
 
 Os slides precisam se explicar sozinhos. Quem folheia sem o apresentador
 deve entender o projeto. O NotebookLM reproduz estes slides; não resume
@@ -9,14 +9,14 @@ COLE ISTO COMO INSTRUÇÃO NO NOTEBOOKLM
 ========================================================================
 
 Faça uma apresentação para banca de pós-graduação (UTFPR, Ciência de
-Dados), 12 a 15 minutos, exatamente 14 slides.
+Dados), 13 a 16 minutos, exatamente 15 slides.
 
-Em todo slide de conteúdo (2 a 13): TÍTULO = o que o slide é
-(Contexto e problema, Proposta, Estudo piloto, Arquitetura, …).
+Em todo slide de conteúdo (2 a 14): TÍTULO = o que o slide é
+(Contexto e problema, Proposta, Estado da arte, Estudo piloto, …).
 SUBTÍTULO = a frase-chave. Nunca use um título vago como “O dado”.
 
 Os slides se explicam sozinhos: cada tópico é uma frase completa, curta.
-No máximo 4 tópicos no slide 2 e no slide 3; 3 nos demais. No slide 13,
+No máximo 4 tópicos nos slides 2 a 4; 3 nos demais. No slide 14,
 cinco pares pergunta–resposta. Sem parágrafo. Sem telegrama.
 
 Voz impessoal. Nunca “eu”, “nós”, “fiz”, “fizemos”, “construímos”.
@@ -31,7 +31,8 @@ Pipeline para Predição de Churn e Segmentação de Clientes em Risco
 no Setor de Telecomunicações
 
 A proposta (slide 3) é devolver núcleos acionáveis e já diz COMO:
-aprendizado supervisionado, não supervisionado e MLOps. O slide 14
+aprendizado supervisionado, não supervisionado e MLOps. O slide 4
+posiciona o trabalho perante literatura e mercado. O slide 15
 é só agradecimento — sem “aprendizados da pós”. Números só os do roteiro.
 
 ========================================================================
@@ -82,15 +83,37 @@ Visual: três cartões (Supervisionado / Não supervisionado / MLOps).
   limiar. Aprendizado não supervisionado (K-Means) agrupa só os
   sinalizados e devolve os núcleos; a campanha no estudo é só uma
   análise exemplar.
-• Conceitos de MLOps organizam o fluxo: extract, train, score e o
-  manifesto Production, para o mesmo código rodar de novo na carteira
-  do mês.
+• Conceitos de MLOps organizam o fluxo: extract no Kaggle, train,
+  promote a champion no MLflow e score em lote, para o mesmo código
+  rodar de novo na carteira do mês.
 • A base do estudo é a pública IBM Telco Customer Churn (7.043
   clientes, 21 colunas): contrato, acesso, serviços e fatura — o
   mesmo tipo de atributo de uma operadora de telecom.
 
 
-SLIDE 4 — Estudo piloto
+SLIDE 4 — Estado da arte e diferencial
+Título: Estado da arte e diferencial
+Subtítulo: O mercado já prediz quem cancela; falta agrupar só o risco e republicar
+Visual: 4 tópicos. Tabela reduzida ao lado, se couber.
+
+• A literatura típica (Verbeke, Ahmad) classifica churn e para no
+  escore ou no ranking de lucro.
+• Ullah (2019) classifica e depois agrupa, porém sobre quem já
+  cancelou, e o resultado fica no caderno.
+• Templates de nuvem e CRM entregam lista ou dashboard; quando
+  segmentam, segmentam a carteira inteira.
+• Este trabalho encadeia XGBoost e K-Means somente nos sinalizados
+  e devolve núcleos acionáveis a cada ciclo do pipeline.
+
+Tabela reduzida (opcional):
+
+|                    | Classifica | Agrupa só o risco?      | Volta a rodar? |
+| Literatura / CRM   | sim        | não (ou RFM da base)    | em geral não   |
+| Ullah (2019)       | sim        | no rótulo, não no score | não            |
+| Este trabalho      | sim        | nos sinalizados         | pipeline       |
+
+
+SLIDE 5 — Estudo piloto
 Título: Estudo piloto
 Subtítulo: Há sinal, mas o recorte mínimo não chega nas metas
 Visual: 3 tópicos + pílulas de métrica.
@@ -103,23 +126,23 @@ Visual: 3 tópicos + pílulas de métrica.
   expostos: o problema é tratável; o recorte mínimo não basta.
 
 
-SLIDE 5 — Arquitetura
+SLIDE 6 — Arquitetura
 Título: Arquitetura
 Subtítulo: O mesmo código roda de novo a cada carteira
 Visual: fluxo em caixas. 3 tópicos embaixo.
 
-Carteira do mês → extract e validate → train (XGBoost + K-Means →
-Production) → score → núcleos
+Carteira do mês → extract (Kaggle) e validate → train (candidate) →
+promote (champion) → score → núcleos
 
-• Os notebooks definem a receita (Optuna, SHAP, K = 3); o pacote
-  operacional repete o lote no mês seguinte.
-• Sem o manifesto Production, o score não pontua — só entra modelo
+• Os notebooks definem a receita (Optuna, SHAP, K = 3); a API FastAPI
+  dispara o lote no mês seguinte.
+• Sem champion no MLflow, o score não pontua — só entra modelo
   aprovado.
 • Os números a seguir (1.556 clientes, R$ 123,4 mil) são a corrida
   de referência do laboratório; cada ciclo devolve o mesmo tipo de tabela.
 
 
-SLIDE 6 — Base de dados e exploração
+SLIDE 7 — Base de dados e exploração
 Título: Base de dados e exploração
 Subtítulo: Na IBM Telco, o contrato mensal concentra o cancelamento
 Figura: article/artigo/figuras/eda_contrato.png
@@ -134,7 +157,7 @@ Visual: figura grande + 3 tópicos.
   derivou 47 atributos a partir das 21 colunas originais.
 
 
-SLIDE 7 — Modelagem da classificação
+SLIDE 8 — Modelagem da classificação
 Título: Modelagem da classificação
 Subtítulo: O limiar pesa mais do que a escolha do algoritmo
 Visual: fórmula em cartão + 3 tópicos.
@@ -147,7 +170,7 @@ Visual: fórmula em cartão + 3 tópicos.
   calibrado: 0,795 (medir em 0,5 seria enganoso).
 
 
-SLIDE 8 — Resultados da classificação
+SLIDE 9 — Resultados da classificação
 Título: Resultados da classificação
 Subtítulo: Dois em cada três contatados cancelariam de fato
 Figura: article/artigo/figuras/avaliacao_modelo.png
@@ -165,7 +188,7 @@ Recall 54,0%     F1 59,6%
   não na falta de um quarto algoritmo.
 
 
-SLIDE 9 — Interpretabilidade
+SLIDE 10 — Interpretabilidade
 Título: Interpretabilidade
 Subtítulo: O modelo se apoia nas features derivadas, não em demografia
 Figura: article/artigo/figuras/shap_beeswarm.png
@@ -180,7 +203,7 @@ Visual: figura + 3 tópicos.
   fatura reduz o cancelamento.
 
 
-SLIDE 10 — Núcleos acionáveis
+SLIDE 11 — Núcleos acionáveis
 Título: Núcleos acionáveis
 Subtítulo: A saída de cada ciclo são três grupos, não uma lista única
 Visual: 3 cartões coloridos + 1 tópico de rodapé.
@@ -194,7 +217,7 @@ Rodapé: 1.556 sinalizados na corrida de referência (limiar 0,795, K = 3).
 O classificador montou a lista; o K-Means montou os núcleos que a empresa lê.
 
 
-SLIDE 11 — Impacto financeiro
+SLIDE 12 — Impacto financeiro
 Título: Impacto financeiro
 Subtítulo: Volume de clientes não é volume de receita
 Figura: article/artigo/figuras/receita_participacao.png
@@ -209,7 +232,7 @@ Visual: pizza + 3 tópicos.
   quem paga R$ 95 — por isso os núcleos existem.
 
 
-SLIDE 12 — Análise exemplar de campanha
+SLIDE 13 — Análise exemplar de campanha
 Título: Análise exemplar de campanha
 Subtítulo: Um caminho possível por núcleo — a ação cabe à operação
 Visual: 3 cartões + rodapé.
@@ -225,7 +248,7 @@ Rodapé: Análise exemplar. O Projeto Integrador devolve os núcleos;
 canal, oferta e KPI ficam com a operação.
 
 
-SLIDE 13 — Perguntas e respostas
+SLIDE 14 — Perguntas e respostas
 Título: Perguntas e respostas
 Subtítulo: Cinco perguntas que resumem o projeto
 Visual: cinco pares. Pergunta em negrito/verde; resposta em uma linha.
@@ -252,7 +275,7 @@ R. Não: é análise exemplar. A entrega é o pipeline que republica
    os núcleos.
 
 
-SLIDE 14 — Agradecimento
+SLIDE 15 — Agradecimento
 Título: Agradecimento
 Visual: fundo limpo. Só o obrigado e a identificação. Sem tópicos
 de aprendizado — isso já está no slide 3.
@@ -272,5 +295,5 @@ Artigo: 7.043 | IBM Telco (pública) | XGBoost | limiar 0,795 | AUC 0,847
         acc 80,6% | prec 66,4% | F1 59,6% | 1.556 em risco | R$ 123,4 mil/mês
         K=3 | silhueta 0,283
 
-Figuras: 6 eda_contrato.png · 8 avaliacao_modelo.png · 9 shap_beeswarm.png
-         11 receita_participacao.png
+Figuras: 7 eda_contrato.png · 9 avaliacao_modelo.png · 10 shap_beeswarm.png
+         12 receita_participacao.png
