@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import pandas as pd
 
-from projeto_integrador.config import COLS_SERVICOS_LIMPEZA
+from projeto_integrador.config import COLS_SERVICOS_LIMPEZA, KAGGLE_DATASET, RAW_CSV_NAME, paths
 from projeto_integrador.schemas import validar_bruto, validar_consolidada
 
 
@@ -41,3 +42,33 @@ def consolidar_csv(origem: Path, destino: Path | None = None) -> pd.DataFrame:
         destino.parent.mkdir(parents=True, exist_ok=True)
         df.to_parquet(destino, engine="pyarrow", index=False)
     return df
+
+
+def baixar_do_kaggle(destino_dir: Path | None = None) -> Path:
+    """Baixa a IBM Telco pela API do Kaggle (KAGGLE_USERNAME / KAGGLE_KEY)."""
+    usuario = os.environ.get("KAGGLE_USERNAME", "").strip()
+    chave = os.environ.get("KAGGLE_KEY", "").strip()
+    if not usuario or not chave:
+        raise RuntimeError(
+            "Extração exige KAGGLE_USERNAME e KAGGLE_KEY no .env "
+            "(https://www.kaggle.com/settings — API token)."
+        )
+    import kaggle
+
+    destino = destino_dir or paths()["raw"]
+    destino.mkdir(parents=True, exist_ok=True)
+    kaggle.api.authenticate()
+    kaggle.api.dataset_download_files(KAGGLE_DATASET, path=str(destino), unzip=True)
+    csv = destino / RAW_CSV_NAME
+    if csv.exists():
+        return csv
+    achados = sorted(destino.glob("*.csv"))
+    if not achados:
+        raise FileNotFoundError(f"Nenhum CSV após o download de {KAGGLE_DATASET} em {destino}.")
+    return achados[0]
+
+
+def extrair_kaggle(destino: Path | None = None) -> pd.DataFrame:
+    dirs = paths()
+    csv = baixar_do_kaggle(dirs["raw"])
+    return consolidar_csv(csv, destino or dirs["base_consolidada"])

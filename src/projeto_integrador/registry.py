@@ -37,6 +37,17 @@ def escrever_production(models_dir: Path, info: dict) -> Path:
     return destino
 
 
+def atualizar_production(models_dir: Path, extra: dict) -> Path | None:
+    """Acrescenta campos (ex.: run do MLflow) ao manifesto já escrito."""
+    atual = ler_production(models_dir)
+    if atual is None:
+        return None
+    atual.update(extra)
+    destino = caminho_production(models_dir)
+    destino.write_text(json.dumps(atual, indent=2, ensure_ascii=False), encoding="utf-8")
+    return destino
+
+
 def ler_production(models_dir: Path) -> dict | None:
     destino = caminho_production(models_dir)
     if not destino.exists():

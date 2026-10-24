@@ -12,7 +12,13 @@ from projeto_integrador.features import carregar_contract_means, preparar_featur
 from projeto_integrador.registry import resolver_models_dir
 from projeto_integrador.report import caracterizar_nucleos
 from projeto_integrador.schemas import validar_saida_score
-from projeto_integrador.tracking import iniciar_run, registrar_metrics, registrar_params
+from projeto_integrador.tracking import (
+    consultar_champion,
+    exigir_tracking,
+    iniciar_run,
+    registrar_metrics,
+    registrar_params,
+)
 
 
 def carregar_artefatos(models_dir: Path, exigir_production: bool = False) -> dict:
@@ -71,6 +77,8 @@ def executar_lote(
     models_dir: Path | None = None,
     registrar: bool = True,
 ) -> dict:
+    exigir_tracking()
+    champion = consultar_champion()
     dirs = paths()
     models_dir = models_dir or dirs["models"]
     consolidada = pd.read_parquet(entrada)
@@ -88,6 +96,8 @@ def executar_lote(
                     "k": artefatos["k"],
                     "n_features": len(artefatos["feature_cols"]),
                     "n_base": len(consolidada),
+                    "champion_version": champion["version"],
+                    "champion_run_id": champion["run_id"],
                 }
             )
         segmentados, relatorio, fumaca = pontuar(

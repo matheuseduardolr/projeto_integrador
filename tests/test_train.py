@@ -1,6 +1,7 @@
 from projeto_integrador.config import K_CLUSTERS
 from projeto_integrador.registry import ler_production
 from projeto_integrador.score import carregar_artefatos, executar_lote, pontuar
+from projeto_integrador.tracking import promover_champion
 from projeto_integrador.train import executar_treino
 
 
@@ -38,6 +39,7 @@ def test_train_promove_production_e_score_republica_nucleos(bruto, tmp_path):
 
     saida = tmp_path / "seg.parquet"
     rel = tmp_path / "nucleos.parquet"
+    promover_champion()
     lote = executar_lote(entrada, saida, rel, models_dir=models, registrar=False)
     assert lote["n_sinalizados"] == resumo["n_sinalizados"]
     assert saida.exists() and rel.exists()

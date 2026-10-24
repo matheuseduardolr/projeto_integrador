@@ -8,26 +8,26 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
+    "boto3>=1.34",
+    "fastapi>=0.115.0",
     "imbalanced-learn>=0.14.2",
     "ipykernel>=7.3.0",
     "kaggle>=2.2.4",
+    "mlflow>=2.16.0",
     "lightgbm>=4.7.0",
     "matplotlib>=3.11.1",
     "numba>=0.62.1",
     "numpy==2.3.3",
     "optuna>=4.9.0",
     "pandas==2.2.3",
+    "python-dotenv>=1.0",
     "pyarrow==20.0.0",
     "scikit-learn>=1.9.0",
     "scipy>=1.18.0",
     "seaborn>=0.13.2",
     "shap>=0.52.0",
+    "uvicorn[standard]>=0.32.0",
     "xgboost>=3.3.0",
-]
-
-[project.optional-dependencies]
-mlops = [
-    "mlflow>=2.16.0",
 ]
 
 [project.scripts]
@@ -35,6 +35,7 @@ projeto-integrador = "projeto_integrador.cli:main"
 
 [dependency-groups]
 dev = [
+    "httpx>=0.27",
     "pytest>=8.0",
 ]
 

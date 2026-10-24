@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -22,6 +23,13 @@ from projeto_integrador.config import (  # noqa: E402
 )
 from projeto_integrador.extract import consolidar  # noqa: E402
 from projeto_integrador.features import engenharia_features  # noqa: E402
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _mlflow_file_store(tmp_path_factory):
+    pasta = tmp_path_factory.mktemp("mlruns")
+    db = (pasta / "mlflow.db").as_posix()
+    os.environ["MLFLOW_TRACKING_URI"] = f"sqlite:///{db}"
 
 
 def _linha(i: int) -> dict:

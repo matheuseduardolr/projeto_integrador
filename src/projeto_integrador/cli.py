@@ -7,21 +7,28 @@ import json
 from pathlib import Path
 
 from projeto_integrador.config import paths
-from projeto_integrador.extract import consolidar_csv
+from projeto_integrador.extract import consolidar_csv, extrair_kaggle
 from projeto_integrador.schemas import validar_consolidada
+from projeto_integrador.registry import atualizar_production
 from projeto_integrador.score import executar_lote
+from projeto_integrador.tracking import promover_champion
 from projeto_integrador.train import executar_treino
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         prog="projeto-integrador",
-        description="Pipeline operacional mensal: extract, train, score e nucleos.",
+        description="Pipeline operacional mensal: extract, train, promote, score e nucleos.",
     )
     sub = parser.add_subparsers(dest="comando", required=True)
 
-    p_extract = sub.add_parser("extract", help="Consolida o CSV bruto (NB01).")
-    p_extract.add_argument("--input", type=Path, default=None)
+    p_extract = sub.add_parser("extract", help="Baixa a IBM Telco no Kaggle e consolida.")
+    p_extract.add_argument(
+        "--input",
+        type=Path,
+        default=None,
+        help="Apenas testes: CSV local. O caminho oficial é a API do Kaggle.",
+    )
     p_extract.add_argument("--output", type=Path, default=None)
 
     p_val = sub.add_parser("validate", help="Valida schema da base consolidada.")
@@ -29,10 +36,16 @@ def main(argv: list[str] | None = None) -> int:
 
     p_train = sub.add_parser(
         "train",
-        help="Retreina XGBoost e K-Means e promove os artefatos a Production.",
+        help="Retreina XGBoost e K-Means, grava production.json e registra candidate no MLflow.",
     )
     p_train.add_argument("--input", type=Path, default=None)
     p_train.add_argument("--models", type=Path, default=None)
+
+    p_prom = sub.add_parser(
+        "promote",
+        help="Promove o candidate (dev.*) a champion (prod.*) no Model Registry.",
+    )
+    p_prom.add_argument("--models", type=Path, default=None)
 
     p_score = sub.add_parser(
         "score",
@@ -47,9 +60,11 @@ def main(argv: list[str] | None = None) -> int:
     dirs = paths()
 
     if args.comando == "extract":
-        origem = args.input or dirs["raw_csv"]
         destino = args.output or dirs["base_consolidada"]
-        df = consolidar_csv(origem, destino)
+        if args.input is not None:
+            df = consolidar_csv(args.input, destino)
+        else:
+            df = extrair_kaggle(destino)
         print(f"Consolidada: {len(df):,} linhas → {destino}")
         return 0
 
@@ -68,6 +83,12 @@ def main(argv: list[str] | None = None) -> int:
             models_dir=args.models or dirs["models"],
         )
         print(json.dumps(resumo, indent=2, ensure_ascii=False))
+        return 0
+
+    if args.comando == "promote":
+        resultado = promover_champion()
+        atualizar_production(args.models or dirs["models"], {"mlflow": resultado})
+        print(json.dumps(resultado, indent=2, ensure_ascii=False))
         return 0
 
     if args.comando == "score":

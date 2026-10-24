@@ -17,5 +17,3 @@ jobs:
         run: uv sync --group dev
       - name: Testes do pipeline operacional
         run: uv run pytest -q
-        env:
-          PROJETO_MLOPS_TRACKING: "0"

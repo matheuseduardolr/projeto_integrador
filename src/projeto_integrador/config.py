@@ -27,6 +27,7 @@ XGB_PARAMS = {
 }
 
 RAW_CSV_NAME = "WA_Fn-UseC_-Telco-Customer-Churn.csv"
+KAGGLE_DATASET = "blastchar/telco-customer-churn"
 
 RAW_COLUMNS = [
     "customerID",

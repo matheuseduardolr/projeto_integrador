@@ -57,3 +57,20 @@ mlartifacts/
 Thumbs.db
 .idea/
 .vscode/
+
+# Apoio local (enunciado, template SBC de exemplo, scripts antigos)
+article/modelo artigo/
+article/*.docx
+article/artigo/_gerar_pptx.py
+extrai_figuras.py
+
+# Figuras do artigo: só as citadas no article.tex (os notebooks geram as demais)
+article/artigo/figuras/*
+!article/artigo/figuras/eda_contrato.png
+!article/artigo/figuras/avaliacao_modelo.png
+!article/artigo/figuras/shap_beeswarm.png
+!article/artigo/figuras/selecao_k.png
+
+# Apresentação: versiona só o PDF final
+apresentacao/*
+!apresentacao/*.pdf

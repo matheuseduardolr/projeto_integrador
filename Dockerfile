@@ -7,5 +7,6 @@ COPY src ./src
 
 RUN pip install --no-cache-dir .
 
-ENTRYPOINT ["projeto-integrador"]
-CMD ["score"]
+EXPOSE 8000
+
+CMD ["uvicorn", "projeto_integrador.api:app", "--host", "0.0.0.0", "--port", "8000"]

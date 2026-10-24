@@ -29,11 +29,12 @@ from projeto_integrador.config import (
     XGB_PARAMS,
 )
 from projeto_integrador.features import preparar_features, preparar_treino
-from projeto_integrador.registry import escrever_production
+from projeto_integrador.registry import atualizar_production, escrever_production
 from projeto_integrador.tracking import (
+    exigir_tracking,
     iniciar_run,
-    registrar_artefato,
     registrar_metrics,
+    registrar_no_registry,
     registrar_params,
 )
 
@@ -173,6 +174,8 @@ def executar_treino(entrada: Path, models_dir: Path) -> dict:
 
         consolidada = consolidar(consolidada)
 
+    exigir_tracking()
+    registro = None
     with iniciar_run("train_encadeado", tags={"pipeline": "churn_kmeans", "etapa": "treino"}):
         prep = preparar_treino(consolidada)
         churn = treinar_churn(prep)
@@ -194,12 +197,9 @@ def executar_treino(entrada: Path, models_dir: Path) -> dict:
                 "silhouette": kmeans["silhouette_k3"],
             }
         )
-        for nome in (
-            "modelo_churn.pkl",
-            "kmeans_segmentacao.pkl",
-            "production.json",
-        ):
-            registrar_artefato(models_dir / nome, "production")
+        registro = registrar_no_registry(models_dir)
+        if registro:
+            atualizar_production(models_dir, {"mlflow": registro})
 
     return {
         "threshold": churn["threshold"],
@@ -208,4 +208,5 @@ def executar_treino(entrada: Path, models_dir: Path) -> dict:
         "silhouette": kmeans["silhouette_k3"],
         "k": kmeans["n_clusters"],
         "models_dir": str(models_dir),
+        "mlflow": registro,
     }
