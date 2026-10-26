@@ -73,3 +73,7 @@ curl -X POST http://localhost:8000/score
 * MinIO: http://localhost:9001 (`user` / `password`)
 
 O CLI (`uv run projeto-integrador …`) chama as mesmas funções, também exigindo MLflow e o token do Kaggle no `extract`.
+
+## Apresentação
+* Vídeo: https://youtu.be/elyn0_sRDXU
+* Slides: [apresentacao/](apresentacao/)
